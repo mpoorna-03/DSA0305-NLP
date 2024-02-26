@@ -1,0 +1,56 @@
+class Production:
+  def _init_(self, lhs, rhs):
+    self.lhs = lhs
+    self.rhs = rhs
+
+class Parser:
+  def _init_(self, grammar, start_symbol):
+    self.grammar = grammar
+    self.start_symbol = start_symbol
+
+  def parse(self, input_string):
+    parse_tree = self._parse_symbol(self.start_symbol, input_string)
+    if parse_tree and input_string == "":
+      return parse_tree
+    return None
+
+  def _parse_symbol(self, symbol, input_string):
+    if isinstance(symbol, str):  # Terminal symbol
+      if input_string[0] == symbol:
+        return input_string[0]
+      else:
+        return None
+    else:  # Non-terminal symbol
+      for production in self.grammar[symbol]:
+        parsed_string = ""
+        for subsymbol in production.rhs:
+          sub_parse_tree = self._parse_symbol(subsymbol, input_string)
+          if not sub_parse_tree:
+            break
+          parsed_string += sub_parse_tree
+          input_string = input_string[len(sub_parse_tree):]
+        if parsed_string != "":
+          return production.lhs + parsed_string
+      return None
+
+# Example usage:
+grammar = {
+  "S": [["NP", "VP"]],
+  "NP": [["Det", "N"], ["Det", "Adj", "N"]],
+  "VP": [["V", "NP"], ["V", "NP", "PP"]],
+  "Det": ["the", "a"],
+  "N": ["cat", "dog"],
+  "V": ["chased", "saw"],
+  "Adj": ["big"],
+  "PP": ["Pre", "NP"],
+  "Pre": ["with", "on"]
+}
+
+parser = Parser(grammar, "S")
+input_string = "the big cat chased the dog"
+parse_tree = parser.parse(input_string)
+
+if parse_tree:
+  print("Parse tree:", parse_tree)
+else:
+  print("Input string cannot be parsed.")
