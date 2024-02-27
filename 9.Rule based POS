@@ -1,37 +1,25 @@
-import nltk
-from nltk.tag import RegexpTagger
+import re
 
-# Define the patterns for tagging
-patterns = [
-    (r'\d+', 'CD'),  # Match numbers
-    (r'.*ing$', 'VBG'),  # Match words ending with -ing
-    (r'.*ed$', 'VBD'),  # Match words ending with -ed
-    (r'.*ness$', 'NN'),  # Match words ending with -ness
-    (r'.*ful$', 'JJ')  # Match words ending with -ful
-]
+def rule_based_pos_tag(sentence):
+    tagged_words = []
 
-# Load the Treebank corpus for training and testing
-nltk.download('treebank')
-train_data = nltk.corpus.treebank.tagged_sents()[:3000]
-test_data = nltk.corpus.treebank.tagged_sents()[3000:]
+    for word in sentence.split():
+        if re.match(r'\b(?:is|am|are)\b', word, re.IGNORECASE):
+            tagged_words.append((word, 'VB'))  # Verb (to be)
+        elif re.match(r'\b(?:the|a|an)\b', word, re.IGNORECASE):
+            tagged_words.append((word, 'DT'))  # Determiner
+        elif re.match(r'\b(?:cat|dog)\b', word, re.IGNORECASE):
+            tagged_words.append((word, 'NN'))  # Noun
+        elif re.match(r'\b(?:runs|sits|jumps)\b', word, re.IGNORECASE):
+            tagged_words.append((word, 'VBZ'))  # Verb (3rd person singular present)
+        else:
+            tagged_words.append((word, 'NN'))  # Default to Noun
 
-# Train the tagger using the training data and patterns
-tagger = RegexpTagger(patterns)
-tagger.train(train_data)
+    return tagged_words
 
-# Evaluate the tagger using the testing data
-accuracy = tagger.evaluate(test_data)
-print("Accuracy:", accuracy)
+# Test the rule-based POS tagging system on a sample sentence
+sentence = "The cat is sitting on the mat."
+tagged_sentence = rule_based_pos_tag(sentence)
+print(tagged_sentence)
 
-# Test the tagger on some example sentences
-sentences = [
-    "I have 3 cats.",
-    "She is running.",
-    "The weather is beautiful.",
-    "His kindness is appreciated."
-]
 
-for sentence in sentences:
-    words = nltk.word_tokenize(sentence)
-    tagged_words = tagger.tag(words)
-    print(tagged_words)
