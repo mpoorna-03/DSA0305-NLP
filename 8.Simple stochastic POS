@@ -1,5 +1,6 @@
 import nltk
 from nltk.corpus import treebank
+from collections import defaultdict
 
 # Download the Treebank corpus
 nltk.download('treebank')
@@ -7,24 +8,46 @@ nltk.download('treebank')
 # Get the tagged sentences from the Treebank corpus
 tagged_sentences = treebank.tagged_sents()
 
-# Create a frequency distribution of words and their corresponding tags
-word_tag_freq = nltk.FreqDist((word.lower(), tag) for sentence in tagged_sentences for (word, tag) in sentence)
+# Create dictionaries to store transition and emission probabilities
+transition_probs = defaultdict(lambda: defaultdict(float))
+emission_probs = defaultdict(lambda: defaultdict(float))
 
-# Function to assign the most frequent tag to a given word
-def get_most_frequent_tag(word):
-    return word_tag_freq[word.lower()].max()
+# Calculate transition and emission probabilities
+for sentence in tagged_sentences:
+    for i in range(1, len(sentence)):
+        prev_tag, tag = sentence[i-1][1], sentence[i][1]
+        transition_probs[prev_tag][tag] += 1
+    for word, tag in sentence:
+        emission_probs[tag][word.lower()] += 1
+# Normalize probabilities
+for prev_tag in transition_probs:
+    total_count = sum(transition_probs[prev_tag].values())
+    for tag in transition_probs[prev_tag]:
+        transition_probs[prev_tag][tag] /= total_count
 
-# Function to assign POS tags to a given sentence
-def pos_tag(sentence):
-    # Tokenize the sentence into words
-    words = nltk.word_tokenize(sentence)
+for tag in emission_probs:
+    total_count = sum(emission_probs[tag].values())
+    for word in emission_probs[tag]:
+        emission_probs[tag][word] /= total_count
 
-    # Assign POS tags to the words using the most frequent tag for each word
-    tagged_words = [(word, get_most_frequent_tag(word)) for word in words]
+# Function to assign POS tags using the stochastic model
+def stochastic_pos_tag(sentence):
+    tagged_words = []
+
+    for word in sentence.split():
+        max_prob, max_tag = 0, None
+
+        for tag in emission_probs:
+            emission_prob = emission_probs[tag][word.lower()] if word.lower() in emission_probs[tag] else 0
+            if emission_prob > max_prob:
+                max_prob, max_tag = emission_prob, tag
+
+        tagged_words.append((word, max_tag))
 
     return tagged_words
 
+
 # Test the POS tagging algorithm on a sample sentence
 sentence = "The cat is sitting on the mat."
-tagged_sentence = pos_tag(sentence)
+tagged_sentence = stochastic_pos_tag(sentence)
 print(tagged_sentence)
