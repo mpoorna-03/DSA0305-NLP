@@ -1,19 +1,21 @@
 import nltk
-from nltk.corpus import stopwords
-from nltk.tokenize import word_tokenize, sent_tokenize
+from nltk import word_tokenize, pos_tag
 
+# Download NLTK data (you can skip this if you've already downloaded it)
+#nltk.download('punkt')
+#nltk.download('averaged_perceptron_tagger')
 
-txt = "The quick brown fox jumps over the lazy dog. " \
-      "Python is a versatile programming language. " \
-      "Natural language processing is a fascinating field " \
-      "that involves understanding human language."
+def pos_tagging(text):
+    tokens = word_tokenize(text)
+    tagged_words = pos_tag(tokens)
+    return tagged_words
 
+# Example usage:
+text = "This is a simple example sentence for part-of-speech tagging using the NLTK library."
 
-tokenized = sent_tokenize(txt)
-for i in tokenized:
-	
-	wordsList = nltk.word_tokenize(i)
-	# POS-tagger. 
-	tagged = nltk.pos_tag(wordsList)
+tagged_text = pos_tagging(text)
 
-	print(tagged)
+print("Original Text:", text)
+print("\nPart-of-Speech Tagging:")
+for word, pos in tagged_text:
+print(f"{word}: {pos}")
