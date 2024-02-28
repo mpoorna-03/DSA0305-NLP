@@ -1,16 +1,29 @@
 from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.metrics.pairwise import linear_kernel
 
-# Define the corpus
-corpus = ['This is the first document.',
-          'This is the second document.',
-          'And this is the third one.',
-          'Is this the first document?']
+# Sample documents
+documents = [
+    "Information retrieval is the process of obtaining information from a large repository.",
+    "TF-IDF is a numerical statistic that reflects the importance of a word in a document.",
+    "Document ranking is the process of sorting documents based on their relevance to a query.",
+]
 
-# Create a TF-IDF vectorizer
-vectorizer = TfidfVectorizer()
+# User query
+query = "How does TF-IDF work in information retrieval?"
 
-# Compute the TF-IDF scores
-tfidf_matrix = vectorizer.fit_transform(corpus)
+# Vectorize documents and query using TF-IDF
+vectorizer = TfidfVectorizer(stop_words='english')
+tfidf_matrix = vectorizer.fit_transform(documents + [query])
 
-# Print the TF-IDF scores
-print(tfidf_matrix.toarray())
+# Calculate cosine similarity between the query and documents
+cosine_similarities = linear_kernel(tfidf_matrix[-1], tfidf_matrix[:-1]).flatten()
+
+# Rank documents based on similarity scores
+document_ranking = sorted(enumerate(cosine_similarities), key=lambda x: x[1], reverse=True)
+
+# Display ranked documents
+print("Ranked Documents:")
+for idx, score in document_ranking:
+    print(f"Document {idx + 1}: Similarity Score = {score:.4f}")
+    print(f"   {documents[idx]}")
+    print()
