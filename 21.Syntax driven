@@ -1,32 +1,30 @@
-import nltk
-from nltk.tokenize import word_tokenize
-from nltk.tag import pos_tag
-from nltk.corpus import wordnet
+import spacy
 
-# Define the sentence
-sentence = "The cat sat on the mat."
+def syntax_semantic_analysis(sentence):
+    # Load spaCy English model
+    nlp = spacy.load("en_core_web_sm")
 
-# Tokenize the sentence
-tokens = word_tokenize(sentence)
+    # Process the input sentence
+    doc = nlp(sentence)
 
-# Perform POS tagging
-pos_tags = pos_tag(tokens)
+    # Extract noun phrases and their meanings
+    noun_phrases = []
+    for chunk in doc.noun_chunks:
+        noun_phrases.append({
+            'text': chunk.text,
+            'root_text': chunk.root.text,
+            'root_dep': chunk.root.dep_,
+            'root_head_text': chunk.root.head.text
+        })
 
-# Extract noun phrases
-noun_phrases = []
-current_noun_phrase = []
-for word, pos in pos_tags:
-    if pos.startswith('NN'):
-        current_noun_phrase.append(word)
-    else:
-        if current_noun_phrase:
-            noun_phrases.append(' '.join(current_noun_phrase))
-            current_noun_phrase = []
-if current_noun_phrase:
-    noun_phrases.append(' '.join(current_noun_phrase))
+    return noun_phrases
 
-# Determine the meaning of the noun phrases
-for noun_phrase in noun_phrases:
-    synsets = wordnet.synsets(noun_phrase)
-    if synsets:
-        print(noun_phrase, synsets[0].definition())
+if __name__ == "__main__":
+    # Example usage
+    input_sentence = "The quick brown fox jumps over the lazy dog"
+    result = syntax_semantic_analysis(input_sentence)
+
+    # Display the results
+    print("Noun Phrases and Their Meanings:")
+    for np in result:
+        print(f"Text: {np['text']}, Root: {np['root_text']}, Dependency: {np['root_dep']}, Head: {np['root_head_text']}")
