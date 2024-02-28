@@ -1,19 +1,26 @@
 import nltk
 from nltk.corpus import wordnet
 
-# Download WordNet if not already downloaded
-nltk.download('wordnet')
+def explore_word_meanings(word):
+    # Download WordNet data if not already downloaded
+    nltk.download('wordnet')
 
-# Define a word
-word = 'business'
+    # Get synsets for the given word
+    synsets = wordnet.synsets(word)
 
-# Get the synsets for the word
-synsets = wordnet.synsets(word)
+    if not synsets:
+        print(f"No synsets found for the word '{word}'.")
+        return
 
-# Print information about each synset
-for synset in synsets:
-    print('Synset name:', synset.name())
-    print('Lemmas:', synset.lemmas())
-    print('Definition:', synset.definition())
-    print('Example:', synset.examples())
-    print()
+    print(f"Synsets for the word '{word}':")
+    for synset in synsets:
+        print(f" - Definition: {synset.definition()}")
+        print(f" - Examples: {synset.examples()}")
+        print()
+
+if __name__ == "__main__":
+    # Input word for exploration
+    input_word = input("Enter a word to explore its meanings: ").strip()
+
+    # Explore word meanings
+    explore_word_meanings(input_word)
