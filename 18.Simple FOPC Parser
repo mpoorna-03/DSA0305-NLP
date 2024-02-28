@@ -1,23 +1,32 @@
-import re
+from pyparsing import Word, alphas, infixNotation, opAssoc, Keyword
+
+
+variable = Word(alphas, max=1)
+predicate = Word(alphas, alphas + '0123456789_')
+
+
+and_operator = Keyword("and")
+or_operator = Keyword("or")
+not_operator = Keyword("not")
+
+
+expr = infixNotation(
+    variable | predicate,
+    [
+        (not_operator, 1, opAssoc.RIGHT, lambda tokens: ('not', tokens[0])),
+        (and_operator, 2, opAssoc.LEFT, lambda tokens: ('and', tokens[0][0], tokens[1])),
+        (or_operator, 2, opAssoc.LEFT, lambda tokens: ('or', tokens[0][0], tokens[1])),
+    ]
+)
+
 
 def parse_fopc(expression):
-    # Remove whitespace
-    expression = re.sub(r'\s', '', expression)
+    return expr.parseString(expression).asList()[0]
 
-    # Check if the expression is a valid FOPC formula
-    if not re.match(r'^[A-Za-z]+\(.+\)$', expression):
-        raise ValueError('Invalid FOPC formula')
 
-    # Split the expression into predicate and arguments
-    predicate, arguments = re.split(r'\(|\)', expression)
-    arguments = arguments.split(',')
+if __name__ == "__main__":
+    expressions = ["x and y", "x or (not y)"]
 
-    return {
-        'predicate': predicate,
-        'arguments': arguments
-    }
-
-# Test the parser
-expression = 'P(x, y, z)'
-parsed_expression = parse_fopc(expression)
-print(parsed_expression)
+    for expression in expressions:
+        parsed_expression = parse_fopc(expression)
+        print(f"Parsed expression for '{expression}':", parsed_expression)
