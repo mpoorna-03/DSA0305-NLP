@@ -1,19 +1,52 @@
-from lark import Lark
+class Node:
+  def __init__(self, symbol, children=[]):
+    self.symbol = symbol
+    self.children = children
 
-# Define the context-free grammar
-grammar = '''
-    start: sentence
-    sentence: "the" noun "is" adjective
-    noun: "cat" | "dog" | "bird"
-    adjective: "happy" | "sad" | "hungry"
-'''
+  def __str__(self):
+    return f"({self.symbol} {' '.join(str(child) for child in self.children)})"
 
-# Create the parser
-parser = Lark(grammar, start='start')
+class CFG:
+  def __init__(self, rules):
+    self.rules = rules
 
-# Parse a sentence and generate the parse tree
-sentence = "the cat is happy"
-tree = parser.parse(sentence)
+  def parse(self, sentence):
+    tokens = sentence.split()
+    return self._parse(tokens, 0)
 
-# Print the parse tree
-print(tree.pretty())
+  def _parse(self, tokens, index):
+    if index == len(tokens):
+      return None
+
+
+    for rule, rhs in self.rules.items():
+      if rule == tokens[index]:
+        children = [self._parse(tokens, i) for i, symbol in enumerate(rhs, index + 1)]
+        if all(child is not None for child in children):
+          return Node(rule, children)
+    return None
+
+# Example grammar
+grammar = CFG({
+  "S": [["NP", "VP"]],
+  "NP": [["Det", "N"], ["Det", "Adj", "N"]],
+  "VP": [["V", "NP"], ["V", "NP", "PP"]],
+  "Det": ["the", "a"],
+  "N": ["dog", "cat", "ball"],
+  "Adj": ["red", "blue"],
+  "V": ["chases", "likes", "sees"],
+  "PP": ["Prep", "NP"],
+  "Prep": ["with", "in"],
+})
+# Example sentence
+sentence = "The red dog chases the ball."
+
+# Parse and print the tree
+tree = grammar.parse(sentence)
+if tree:
+  print("Parse Tree:")
+  print(tree)
+else:
+  print("Sentence does not match the grammar.")
+
+
