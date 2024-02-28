@@ -1,14 +1,24 @@
 import spacy
 
-# Load the English language model
-nlp = spacy.load("en_core_web_sm")
+def perform_ner(text):
+    # Load the SpaCy English model
+    nlp = spacy.load("en_core_web_sm")
 
-# Define the text to be analyzed
-text = "Apple is looking at buying U.K. startup for $1 billion"
+    # Process the text with SpaCy
+    doc = nlp(text)
 
-# Process the text
-doc = nlp(text)
+    # Extract named entities
+    entities = [(entity.text, entity.label_) for entity in doc.ents]
 
-# Print the named entities and their labels
-for ent in doc.ents:
-    print(ent.text, ent.label_)
+    return entities
+
+# Example text
+sample_text = "Apple Inc. was founded by Steve Jobs, Steve Wozniak, and Ronald Wayne. The headquarters is in Cupertino, California."
+
+# Perform NER on the example text
+ner_results = perform_ner(sample_text)
+
+# Display the results
+for entity, label in ner_results:
+    print(f"Entity: {entity}, Label: {label}")
+
