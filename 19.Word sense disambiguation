@@ -1,28 +1,25 @@
+
 import nltk
-from nltk.corpus import wordnet as wn
+nltk.download('punkt')
 
-def lesk(context_sentence, ambiguous_word, pos=None, synsets=None):
-    if synsets is None:
-        synsets = wn.synsets(ambiguous_word, pos=pos)
+nltk.download('wordnet')
+from nltk.corpus import wordnet
+from nltk.wsd import lesk
+from nltk.tokenize import word_tokenize
 
-    context = set(context_sentence)
-    best_sense = None
-    max_overlap = 0
+def perform_lesk_disambiguation(sentence, target_word):
+    tokens = word_tokenize(sentence)
+    sense = lesk(tokens, target_word)
+    return sense.definition() if sense else "No sense found."
 
-    for sense in synsets:
-        signature = set(sense.definition().split())
-        for example in sense.examples():
-            signature.union(set(example.split()))
+if __name__ == "__main__":
+    # Example sentence and target word
+    example_sentence = "He went to the bank to deposit his money."
+    target_word = "bank"
 
-        overlap = len(context.intersection(signature))
-        if overlap > max_overlap:
-            max_overlap = overlap
-            best_sense = sense
+    # Perform Lesk disambiguation
+    result_definition = perform_lesk_disambiguation(example_sentence, target_word)
 
-    return best_sense
-
-# Example usage
-sentence = ['I', 'went', 'to', 'the', 'bank', 'to', 'deposit', 'money', '.']
-ambiguous_word = 'bank'
-sense = lesk(sentence, ambiguous_word, pos='n')
-print(sense)
+    print(f"Example Sentence: {example_sentence}")
+    print(f"Target Word: {target_word}")
+    print(f"Disambiguated Sense: {result_definition}")
