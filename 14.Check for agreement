@@ -1,25 +1,48 @@
-import nltk
+class CFG:
+  def __init__(self, rules):
+    self.rules = rules
 
-# Define the context-free grammar
-grammar = nltk.CFG.fromstring("""
-    S -> NP[AGR=?n] VP[AGR=?n]
-    NP[AGR=?n] -> PropN[AGR=?n]
-    VP[TENSE=?t, AGR=?n] -> Cop[TENSE=?t, AGR=?n] Adj
-    Cop[TENSE=pres, AGR=[NUM=sg, PER=3]] -> 'is'
-    PropN[AGR=[NUM=sg, PER=3]] -> 'Kim'
-    Adj -> 'happy'
-""")
+  def parse(self, sentence):
+    tokens = sentence.split()
+    return self._parse(tokens, 0)
 
-# Create a feature-based chart parser
-parser = nltk.FeatureChartParser(grammar)
+  def _parse(self, tokens, index):
+    if index == len(tokens):
+      return True
 
-# Input sentence
-sentence = "Kim is happy"
+    for rule, rhs in self.rules.items():
+      if rule == tokens[index]:
+        for subrule in rhs:
+          if all(self._parse(tokens, i) for i, symbol in enumerate(subrule, index + 1)):
+            return True
+    return False
 
-# Tokenize the sentence
-tokens = sentence.split()
+# Example grammar
+grammar = CFG({
+  "S": [["NP", "VP"]],
+  "NP": [["Det", "N"], ["Det", "Adj", "N"]],
+  "VP": [["V", "NP"], ["V", "NP", "PP"]],
+  "Det": ["the", "a"],
+  "N": ["dog", "cat", "ball"],
+  "Adj": ["red", "blue"],
+  "V": ["chases", "likes", "sees"],
+  "PP": ["Prep", "NP"],
+  "Prep": ["with", "in"],
+})
 
-# Parse the sentence
-for tree in parser.parse(tokens):
-    print(tree)
-    tree.pretty_print()
+# Example sentences
+sentences = [
+  "The red dog chases the ball.",
+  "The blue cat sees a ball in the room.",
+  "A dog likes a cat with a red ball.",
+  "The cat sees the dog.",
+]
+
+# Check agreement for each sentence
+for sentence in sentences:
+  print(f"Sentence: {sentence}")
+  if grammar.parse(sentence):
+    print("Agreement: True")
+  else:
+    print("Agreement: False")
+  print()
